@@ -1,0 +1,30 @@
+agents:
+  "EG: ε=0.9":
+    class_path: "n_armed_bandit.agent.EpsilonGreedyAgent"
+    init_args:
+      n_arms: 11
+      epsilon: 0.9
+  "EG: ε=0.5":
+    class_path: "n_armed_bandit.agent.EpsilonGreedyAgent"
+    init_args:
+      n_arms: 11
+      epsilon: 0.5
+  "EG: ε=0.25":
+    class_path: "n_armed_bandit.agent.EpsilonGreedyAgent"
+    init_args:
+      n_arms: 11
+      epsilon: 0.25
+  "EG: ε=0.1":
+    class_path: "n_armed_bandit.agent.EpsilonGreedyAgent"
+    init_args:
+      n_arms: 11
+      epsilon: 0.1
+bandit:
+  class_path: "n_armed_bandit.bandits.BernoulliBandit"
+  init_args:
+    n_arms: 11
+    ps: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+n_steps: 500
+n_runs: 1000
+plot_title: "11-Armed Bernoulli Bandit with ps=[0.0-1.0]"
+save_path: n_armed_bandit/results/eg_bernoulli.png

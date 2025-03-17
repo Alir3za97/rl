@@ -1,0 +1,15 @@
+[project]
+name = "rl"
+version = "0.1.0"
+description = "Personal reproduce of methods and problems in the best RL book."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "jsonargparse[all]>=4.37.0",
+    "jsonnet==0.21.0rc2",
+    "scipy>=1.15.2",
+    "matplotlib>=3.7.0",
+    "seaborn>=0.12.0",
+    "tqdm>=4.67.1",
+    "ipdb>=0.13.13",
+]

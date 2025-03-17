@@ -1,0 +1,30 @@
+agents:
+  "Gradient: α=0.99":
+    class_path: "n_armed_bandit.agent.GradientAgent"
+    init_args:
+      n_arms: 11
+      alpha: 0.99
+  "Gradient: α=0.9":
+    class_path: "n_armed_bandit.agent.GradientAgent"
+    init_args:
+      n_arms: 11
+      alpha: 0.9
+  "Gradient: α=0.5":
+    class_path: "n_armed_bandit.agent.GradientAgent"
+    init_args:
+      n_arms: 11
+      alpha: 0.5
+  "Gradient: α=0.1":
+    class_path: "n_armed_bandit.agent.GradientAgent"
+    init_args:
+      n_arms: 11
+      alpha: 0.1
+bandit:
+  class_path: "n_armed_bandit.bandits.BernoulliBandit"
+  init_args:
+    n_arms: 11
+    ps: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+n_steps: 500
+n_runs: 1000
+plot_title: "11-Armed Bernoulli Bandit with ps=[0.0-1.0]"
+save_path: n_armed_bandit/results/gradient_bernoulli.png

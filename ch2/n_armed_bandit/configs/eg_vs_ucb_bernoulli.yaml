@@ -1,0 +1,25 @@
+agents:
+  "UCB: c=0.1":
+    class_path: "n_armed_bandit.agent.UCBAgent"
+    init_args:
+      n_arms: 11
+      c: 0.1
+  "UCB: c=1":
+    class_path: "n_armed_bandit.agent.UCBAgent"
+    init_args:
+      n_arms: 11
+      c: 1
+  "EG: ε=0.1":
+    class_path: "n_armed_bandit.agent.EpsilonGreedyAgent"
+    init_args:
+      n_arms: 11
+      epsilon: 0.1
+bandit:
+  class_path: "n_armed_bandit.bandits.BernoulliBandit"
+  init_args:
+    n_arms: 11
+    ps: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+n_steps: 500
+n_runs: 1000
+plot_title: "11-Armed Bernoulli Bandit with ps=[0.0-1.0]"
+save_path: n_armed_bandit/results/eg_vs_ucb_bernoulli.png
