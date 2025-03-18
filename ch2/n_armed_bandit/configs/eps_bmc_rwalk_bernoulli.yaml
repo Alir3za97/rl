@@ -1,0 +1,68 @@
+agents:
+  "ε-BMC (α=1, β=1, λ=0.1, ε_min=0.01)":
+    class_path: "n_armed_bandit.agent.eps_bmc.EpsilonBMCAgent"
+    init_args:
+      num_arms: 11
+      eps_alpha: 1.0
+      eps_beta: 1.0
+      lambda_: 0.1
+      epsilon_min: 0.01
+  "ε-BMC (α=1, β=9, λ=0.1, ε_min=0.01)":
+    class_path: "n_armed_bandit.agent.eps_bmc.EpsilonBMCAgent"
+    init_args:
+      num_arms: 11
+      eps_alpha: 1.0
+      eps_beta: 9.0
+      lambda_: 0.1
+      epsilon_min: 0.01
+  "ε-BMC (α=1, β=1, λ=0.5, ε_min=0.01)":
+    class_path: "n_armed_bandit.agent.eps_bmc.EpsilonBMCAgent"
+    init_args:
+      num_arms: 11
+      eps_alpha: 1.0
+      eps_beta: 1.0
+      lambda_: 0.5
+      epsilon_min: 0.01
+  "ε-BMC (α=1, β=9, λ=0.5, ε_min=0.01)":
+    class_path: "n_armed_bandit.agent.eps_bmc.EpsilonBMCAgent"
+    init_args:
+      num_arms: 11
+      eps_alpha: 1.0
+      eps_beta: 9.0
+      lambda_: 0.5
+      epsilon_min: 0.01
+  "ε-BMC (α=0.5, β=1, λ=0.3, ε_min=0.005)":
+    class_path: "n_armed_bandit.agent.eps_bmc.EpsilonBMCAgent"
+    init_args:
+      num_arms: 11
+      eps_alpha: 0.5
+      eps_beta: 1.0
+      lambda_: 0.3
+      epsilon_min: 0.005
+  "ε-BMC (α=2, β=5, λ=0.9, ε_min=0.05)":
+    class_path: "n_armed_bandit.agent.eps_bmc.EpsilonBMCAgent"
+    init_args:
+      num_arms: 11
+      eps_alpha: 2.0
+      eps_beta: 5.0
+      lambda_: 0.9
+      epsilon_min: 0.05
+  "ε-BMC (α=1, β=5, λ=0.01, ε_min=0.001)":
+    class_path: "n_armed_bandit.agent.eps_bmc.EpsilonBMCAgent"
+    init_args:
+      num_arms: 11
+      eps_alpha: 1.0
+      eps_beta: 5.0
+      lambda_: 0.01
+      epsilon_min: 0.001
+bandit:
+  class_path: "n_armed_bandit.bandits.NonStationaryBernoulliBandit"
+  init_args:
+    n_arms: 11
+    ps: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+    step_std: 0.2
+    walk_every: 100
+n_steps: 1000
+n_runs: 100
+plot_title: "ε-BMC on 11-Armed Non-Stationary Bernoulli Bandit"
+save_path: n_armed_bandit/results/eps_bmc_rwalk_bernoulli.png

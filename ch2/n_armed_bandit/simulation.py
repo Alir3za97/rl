@@ -34,3 +34,4 @@ class Simulation:
 
     def reset(self) -> None:
         self.agent.reset()
+        self.bandit.reset()

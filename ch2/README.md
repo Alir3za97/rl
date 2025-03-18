@@ -17,6 +17,10 @@ Our simulation implements a framework for testing different bandit algorithms. T
 
 1. **Bandits**: Represent the reward-generating mechanisms
    - `BernoulliBandit`: Returns rewards of 0 or 1 based on a specified probability for each arm
+   - **NonStationaryBernoulliBandit**: Implements a Gaussian random walk for reward probabilities:
+     - Reward probabilities perturbed every `walk_every` steps
+     - Step size controlled by `step_std` parameter
+     - Automatically resets to original probabilities when environment resets
 
 2. **Agents**: Implement different strategies for selecting arms
    - Each agent maintains estimates of arm values and updates them based on observed rewards
@@ -79,6 +83,19 @@ The update rule increases the preference for the selected action if it yields a 
 
 The gradient method can be particularly effective in non-stationary environments where the optimal action may change over time.
 
+### Epsilon-BMC (Bayesian Model combination)
+The Epsilon-BMC agent implements an adaptive Bayesian approach to epsilon selection:
+- Maintains a Beta distribution over ε values that adapts based on observed rewards
+- Uses Normal-Gamma priors for reward estimation
+- Automatically balances exploration/exploitation through Bayesian updates
+- Particularly effective in non-stationary environments
+
+Key features:
+- ε ~ Beta(α, β) with parameters updated via Bayes factor
+- Reward estimation using conjugate priors (Normal-Gamma distribution)
+- Built-in minimum exploration probability (ε_min)
+- Adaptive variance estimation for reward predictions
+
 ## Comparison of Methods
 
 When comparing all three methods, we can see their relative strengths and weaknesses:
@@ -94,9 +111,18 @@ The best method depends on the specific characteristics of the bandit problem, s
 - The number of arms and their reward distributions
 - The time horizon (how many steps the agent has to learn)
 
+### Non-Stationary Environment Performance
+The new NonStationaryBernoulliBandit reveals different strengths in agents:
+
+![Non-Stationary Performance](n_armed_bandit/results/all_agents_rwalk_bernoulli.png)
+
+- Epsilon-BMC adapts better to changing reward distributions
+- Traditional methods require higher exploration rates
+- Gradient methods show more resilience than value-based approaches
+
 ## Running the Simulation
 
-The simulation can be run using the provided configuration files:
+The simulation can be run using the provided configuration files, e.g.:
 
 ```bash
 python -m n_armed_bandit.run --config n_armed_bandit/configs/eg_bernoulli.yaml run

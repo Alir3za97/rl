@@ -1,0 +1,42 @@
+agents:
+  "Epsilon-BMC (α=1, β=1, λ=0.1)":
+    class_path: "n_armed_bandit.agent.eps_bmc.EpsilonBMCAgent"
+    init_args:
+      num_arms: 11
+      eps_alpha: 1.0
+      eps_beta: 1.0
+      lambda_: 0.1
+      epsilon_min: 0.01
+  "Epsilon-BMC (α=1, β=9, λ=0.1)":
+    class_path: "n_armed_bandit.agent.eps_bmc.EpsilonBMCAgent"
+    init_args:
+      num_arms: 11
+      eps_alpha: 1.0
+      eps_beta: 9.0
+      lambda_: 0.1
+      epsilon_min: 0.01
+  "Epsilon-BMC (α=1, β=1, λ=0.5)":
+    class_path: "n_armed_bandit.agent.eps_bmc.EpsilonBMCAgent"
+    init_args:
+      num_arms: 11
+      eps_alpha: 1.0
+      eps_beta: 9.0
+      lambda_: 0.5
+      epsilon_min: 0.01
+  "Epsilon-BMC (α=1, β=9, λ=0.5)":
+    class_path: "n_armed_bandit.agent.eps_bmc.EpsilonBMCAgent"
+    init_args:
+      num_arms: 11
+      eps_alpha: 1.0
+      eps_beta: 9.0
+      lambda_: 0.5
+      epsilon_min: 0.01
+bandit:
+  class_path: "n_armed_bandit.bandits.BernoulliBandit"
+  init_args:
+    n_arms: 11
+    ps: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+n_steps: 500
+n_runs: 1000
+plot_title: "Epsilon-BMC on 11-Armed Bernoulli Bandit"
+save_path: n_armed_bandit/results/eps_bmc_bernoulli.png

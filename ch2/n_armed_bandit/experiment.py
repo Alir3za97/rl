@@ -33,14 +33,16 @@ class ExperimentManager:
             p_bar.set_description(f"Running {name}")
             simulation = Simulation(agent, self.bandit)
 
-            for _ in range(self.n_runs):
+            for _ in tqdm(range(self.n_runs), leave=False, position=1):
                 rewards = simulation.run(self.n_steps)
                 results[name].append(rewards)
 
         self._plot_results(results)
 
     def _plot_results(self, results: Dict[str, List[float]]):
-        sns.set_theme(style="whitegrid", context="notebook", palette="deep", font="sans-serif", font_scale=1.2)
+        sns.set_theme(style="whitegrid", context="notebook", palette="deep", font="DejaVu Sans", font_scale=1.2)
+        plt.rcParams['font.family'] = 'DejaVu Sans'  # Fallback for matplotlib
+        plt.rcParams['axes.unicode_minus'] = False  # Fix minus sign rendering
 
         plt.figure(figsize=(12, 8))
 

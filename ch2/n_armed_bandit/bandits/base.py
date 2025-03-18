@@ -5,3 +5,7 @@ class Bandit(ABC):
     @abstractmethod
     def pull(self, arm: int) -> float:
         ...
+
+    @abstractmethod
+    def reset(self) -> None:
+        ...
