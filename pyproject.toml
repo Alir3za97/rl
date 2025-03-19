@@ -13,4 +13,11 @@ dependencies = [
     "tqdm>=4.67.1",
     "ipdb>=0.13.13",
     "pygame>=2.6.1",
+    "pylint>=3.3.5",
+    "flake8>=7.1.2",
 ]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+include = '\.pyi?$'
