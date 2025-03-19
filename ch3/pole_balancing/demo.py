@@ -13,7 +13,7 @@ def run_demo():
         if should_quit:
             break
 
-        state, reward, done, _ = env.step(action)
+        state, _, done, _ = env.step(action)
         ui.render(state)
 
         if done:

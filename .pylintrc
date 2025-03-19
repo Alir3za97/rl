@@ -48,6 +48,12 @@ max-statements=50
 # Maximum number of parents for a class (see R0901)
 max-parents=7
 
+# Maximum number of attributes for a class (see R0902)
+max-attributes=15
+
+# Maximum number of positional arguments for a function / method (see R0913)
+max-positional-arguments=12
+
 [MESSAGES CONTROL]
 # Only show warnings with the listed confidence levels
 confidence=HIGH,INFERENCE,UNDEFINED
