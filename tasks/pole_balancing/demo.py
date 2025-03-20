@@ -2,7 +2,8 @@ from pole_balancing.environment.environment import PoleBalancingEnvironment
 from pole_balancing.environment.pygame_ui import PoleBalancingUI
 
 
-def run_demo():
+def run_demo() -> None:
+    """Run the Pole Balancing demo."""
     env = PoleBalancingEnvironment()
     ui = PoleBalancingUI(env.dt)
     state = env.reset()

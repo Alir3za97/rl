@@ -1,9 +1,11 @@
 # DISCLAIMER: This code is LLM generated. Don't ask me about it.
 
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.patheffects as path_effects
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.colors import LinearSegmentedColormap
+
+from grid_world.env import GridWorld
 
 # Direction arrows for visualization
 ARROWS = {"up": "↑", "down": "↓", "left": "←", "right": "→"}
@@ -12,16 +14,26 @@ ARROWS = {"up": "↑", "down": "↓", "left": "←", "right": "→"}
 class GridWorldVisualizer:
     """Matplotlib-based visualizer for grid world environments."""
 
-    def __init__(self, env, figsize=(10, 8)):
+    def __init__(self, env: GridWorld, figsize: tuple[int, int] = (10, 8)) -> None:
         """Initialize visualizer with grid world environment."""
         self.env = env
         self.figsize = figsize
         # Create a custom colormap: red (negative) -> white (zero) -> green (positive)
         self.cmap = LinearSegmentedColormap.from_list(
-            "value_cmap", [(0, "#ff5555"), (0.5, "#f8f8f2"), (1, "#50fa7b")]  # Dracula-inspired colors
+            "value_cmap",
+            [
+                (0, "#ff5555"),
+                (0.5, "#f8f8f2"),
+                (1, "#50fa7b"),
+            ],  # Dracula-inspired colors
         )
         # Direction vectors for policy arrows
-        self.directions = {"up": (0, -0.4), "down": (0, 0.4), "left": (-0.4, 0), "right": (0.4, 0)}
+        self.directions = {
+            "up": (0, -0.4),
+            "down": (0, 0.4),
+            "left": (-0.4, 0),
+            "right": (0.4, 0),
+        }
         # Create persistent figure and axes
         self.fig = None
         self.ax = None
@@ -37,28 +49,36 @@ class GridWorldVisualizer:
         self.arrow_color = "#ff79c6"  # Pink
         self.arrow_edge_color = "#f8f8f2"  # Light edge
 
-    def _ensure_figure_exists(self):
+    def close(self) -> None:
+        """Close the matplotlib figure and release resources."""
+        if self.fig is not None and plt.fignum_exists(self.fig.number):
+            plt.close(self.fig)
+            self.fig = None
+            self.ax = None
+            self.colorbar = None
+
+    def _ensure_figure_exists(self) -> None:
         """Make sure we have a figure to plot on."""
         if self.fig is None or not plt.fignum_exists(self.fig.number):
             plt.style.use("dark_background")
             self.fig, self.ax = plt.subplots(figsize=self.figsize)
             self.fig.patch.set_facecolor(self.bg_color)
             # Make the figure respond to window resize
-            self.fig.canvas.mpl_connect("resize_event", lambda event: plt.tight_layout())
+            self.fig.canvas.mpl_connect("resize_event", lambda _: plt.tight_layout())
 
     def visualize_iteration(
         self,
-        iteration,
-        values,
-        delta=None,
-        theta=None,
-        policy=None,
-        policy_stable=None,
-        eval_iterations=None,
-        show=True,
-        save_path=None,
-        title=None,
-    ):
+        iteration: int,
+        values: np.ndarray,
+        delta: float | None = None,
+        theta: float | None = None,
+        policy: dict[tuple[int, int], str] | None = None,
+        policy_stable: bool | None = None,
+        eval_iterations: int | None = None,
+        show: bool = True,
+        save_path: str | None = None,
+        title: str | None = None,
+    ) -> tuple[plt.Figure, plt.Axes]:
         """Visualize a single iteration of value/policy iteration."""
         # Use persistent figure instead of creating new ones
         self._ensure_figure_exists()
@@ -99,17 +119,27 @@ class GridWorldVisualizer:
 
         return self.fig, self.ax
 
-    def visualize_values_and_policy(self, values, policy):
+    def visualize_values_and_policy(
+        self, values: np.ndarray, policy: dict[tuple[int, int], str]
+    ) -> tuple[plt.Figure, plt.Axes]:
         """Visualize both values and policy arrows with matplotlib."""
         return self.visualize_iteration(
-            iteration=0, values=values, policy=policy, title="Grid World Values and Policy", show=True
+            iteration=0,
+            values=values,
+            policy=policy,
+            title="Grid World Values and Policy",
+            show=True,
         )
 
-    def visualize_values(self, values):
+    def visualize_values(self, values: np.ndarray) -> tuple[plt.Figure, plt.Axes]:
         """Visualize values with color coding using matplotlib."""
-        return self.visualize_iteration(iteration=0, values=values, title="Grid World Values", show=True)
+        return self.visualize_iteration(
+            iteration=0, values=values, title="Grid World Values", show=True
+        )
 
-    def _plot_grid(self, ax, values, policy=None):
+    def _plot_grid(
+        self, ax: plt.Axes, values: np.ndarray, policy: dict[tuple[int, int], str] | None = None
+    ) -> None:
         """Plot the grid with values as a heatmap and optional policy arrows."""
         height, width = self.env.height, self.env.width
 
@@ -132,7 +162,7 @@ class GridWorldVisualizer:
         # Setup axes styling and labels
         self._setup_axes_styling(ax, width, height)
 
-    def _setup_heatmap(self, ax, values):
+    def _setup_heatmap(self, ax: plt.Axes, values: np.ndarray) -> None:
         """Create the heatmap and set up colorbar."""
         # Normalize values for color mapping
         vmin, vmax = values.min(), values.max()
@@ -159,13 +189,15 @@ class GridWorldVisualizer:
         self.colorbar.ax.yaxis.set_tick_params(color=self.text_color)
         plt.setp(plt.getp(self.colorbar.ax.axes, "yticklabels"), color=self.text_color)
 
-    def _add_grid_lines(self, ax, width, height):
+    def _add_grid_lines(self, ax: plt.Axes, width: int, height: int) -> None:
         """Add grid lines to the plot."""
         ax.set_xticks(np.arange(-0.5, width, 1), minor=True)
         ax.set_yticks(np.arange(-0.5, height, 1), minor=True)
         ax.grid(which="minor", color=self.grid_color, linestyle="-", linewidth=1.5)
 
-    def _add_cell_details(self, ax, values, policy):
+    def _add_cell_details(
+        self, ax: plt.Axes, values: np.ndarray, policy: dict[tuple[int, int], str]
+    ) -> None:
         """Add text and styling to grid cells."""
         height, width = self.env.height, self.env.width
 
@@ -185,17 +217,41 @@ class GridWorldVisualizer:
                 text_alpha = 0.4 if policy and policy.get((i, j)) in self.directions else 0.9
                 self._add_value_text(ax, i, j, value, text_alpha)
 
-    def _style_obstacle_cell(self, ax, i, j):
+    def _style_obstacle_cell(self, ax: plt.Axes, i: int, j: int) -> None:
         """Style an obstacle cell."""
-        ax.add_patch(plt.Rectangle((j - 0.5, i - 0.5), 1, 1, fill=True, color=self.wall_color, alpha=0.8))
-        ax.text(j, i, "WALL", ha="center", va="center", fontsize=8, color=self.text_color, weight="bold")
+        ax.add_patch(
+            plt.Rectangle((j - 0.5, i - 0.5), 1, 1, fill=True, color=self.wall_color, alpha=0.8)
+        )
+        ax.text(
+            j,
+            i,
+            "WALL",
+            ha="center",
+            va="center",
+            fontsize=8,
+            color=self.text_color,
+            weight="bold",
+        )
 
-    def _style_goal_cell(self, ax, i, j):
+    def _style_goal_cell(self, ax: plt.Axes, i: int, j: int) -> None:
         """Style the goal cell."""
-        ax.add_patch(plt.Rectangle((j - 0.5, i - 0.5), 1, 1, fill=True, color=self.goal_color, alpha=0.3))
-        ax.text(j, i, "GOAL", ha="center", va="center", fontsize=8, color=self.text_color, weight="bold")
+        ax.add_patch(
+            plt.Rectangle((j - 0.5, i - 0.5), 1, 1, fill=True, color=self.goal_color, alpha=0.3)
+        )
+        ax.text(
+            j,
+            i,
+            "GOAL",
+            ha="center",
+            va="center",
+            fontsize=8,
+            color=self.text_color,
+            weight="bold",
+        )
 
-    def _add_value_text(self, ax, i, j, value, text_alpha):
+    def _add_value_text(
+        self, ax: plt.Axes, i: int, j: int, value: float, text_alpha: float
+    ) -> None:
         """Add value text to a cell."""
         text = ax.text(
             j,
@@ -209,15 +265,20 @@ class GridWorldVisualizer:
             alpha=text_alpha,
             zorder=5,  # Lower zorder to appear below arrows
         )
-        text.set_path_effects([path_effects.withStroke(linewidth=1.5, foreground="black", alpha=text_alpha)])
+        text.set_path_effects(
+            [path_effects.withStroke(linewidth=1.5, foreground="black", alpha=text_alpha)]
+        )
 
-    def _add_policy_arrows(self, ax, policy):
+    def _add_policy_arrows(self, ax: plt.Axes, policy: dict[tuple[int, int], str]) -> None:
         """Add policy arrows to the grid."""
         height, width = self.env.height, self.env.width
 
         for i in range(height):
             for j in range(width):
-                if (i, j) not in self.env.obstacle_positions and (i, j) != self.env.goal_position:
+                if (i, j) not in self.env.obstacle_positions and (
+                    i,
+                    j,
+                ) != self.env.goal_position:
                     action = policy.get((i, j))
                     if action in self.directions:
                         dx, dy = self.directions[action]
@@ -235,7 +296,7 @@ class GridWorldVisualizer:
                             zorder=10,  # Full opacity, higher zorder
                         )
 
-    def _setup_axes_styling(self, ax, width, height):
+    def _setup_axes_styling(self, ax: plt.Axes, width: int, height: int) -> None:
         """Set up axis labels and styling."""
         ax.set_xticks(range(width))
         ax.set_yticks(range(height))
@@ -250,7 +311,7 @@ class GridWorldVisualizer:
         ax.tick_params(axis="x", colors=self.text_color)
         ax.tick_params(axis="y", colors=self.text_color)
 
-    def print_grid(self, grid, title="", fmt=""):
+    def print_grid(self, grid: np.ndarray, title: str = "", fmt: str = "") -> None:
         """Print a grid as a matplotlib visualization."""
         self._ensure_figure_exists()
 
@@ -293,16 +354,33 @@ class GridWorldVisualizer:
                     value = grid[i, j]
                     text = f"{value:{fmt}}" if fmt else f"{value}"
                     text_obj = self.ax.text(
-                        j, i, text, ha="center", va="center", color=self.text_color, fontsize=8, weight="bold"
+                        j,
+                        i,
+                        text,
+                        ha="center",
+                        va="center",
+                        color=self.text_color,
+                        fontsize=8,
+                        weight="bold",
                     )
-                    text_obj.set_path_effects([path_effects.withStroke(linewidth=1.5, foreground="black")])
+                    text_obj.set_path_effects(
+                        [path_effects.withStroke(linewidth=1.5, foreground="black")]
+                    )
         else:
             # For non-numeric grids (e.g., policy arrows)
             self.ax.imshow(np.zeros_like(grid, dtype=float), cmap="viridis", alpha=0.1)
             height, width = grid.shape
             for i in range(height):
                 for j in range(width):
-                    self.ax.text(j, i, str(grid[i, j]), ha="center", va="center", fontsize=8, color=self.text_color)
+                    self.ax.text(
+                        j,
+                        i,
+                        str(grid[i, j]),
+                        ha="center",
+                        va="center",
+                        fontsize=8,
+                        color=self.text_color,
+                    )
 
         # Style grid lines and spines
         self.ax.grid(color=self.grid_color, linestyle="-", linewidth=1)

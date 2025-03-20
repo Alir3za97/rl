@@ -1,15 +1,35 @@
 import time
+from typing import Any
+
 import numpy as np
 
 from grid_world.env import GridWorld
-from grid_world.visualizer import GridWorldVisualizer, ARROWS
+from grid_world.visualizer import ARROWS, GridWorldVisualizer
 
 
 class GridWorldSolution:
     def __init__(
-        self, env: GridWorld, gamma: float = 0.9, max_iterations: int = 1000, theta: float = 1e-7,
-        visualize: bool = True, vis_interval: int = 5, sleep_time: float = 0.2
-    ):
+        self,
+        env: GridWorld,
+        gamma: float = 0.9,
+        max_iterations: int = 1000,
+        theta: float = 1e-7,
+        visualize: bool = True,
+        vis_interval: int = 5,
+        sleep_time: float = 0.2,
+    ) -> None:
+        """Initialize the GridWorldSolution.
+
+        Args:
+            env: The GridWorld environment.
+            gamma: The discount factor.
+            max_iterations: The maximum number of iterations.
+            theta: The convergence threshold.
+            visualize: Whether to visualize the solution.
+            vis_interval: The interval to visualize the solution.
+            sleep_time: The time to sleep between iterations.
+
+        """
         self.env = env
         self.gamma = gamma
         self.max_iterations = max_iterations
@@ -40,10 +60,8 @@ class GridWorldSolution:
         self.visualize_policy()
 
         print("\nExecuting optimal policy:")
-        user_input = input(
-            "Would you like to see the policy in action? (y/n): "
-        ).strip().lower()
-        if user_input != 'y':
+        user_input = input("Would you like to see the policy in action? (y/n): ").strip().lower()
+        if user_input != "y":
             print("Skipping policy execution.")
             return self.policy, self.values
         self.execute_policy()
@@ -57,7 +75,7 @@ class GridWorldSolution:
         min_val = values.min()
         max_val = values.max()
 
-        for iteration in range(1, self.max_iterations+1):
+        for iteration in range(1, self.max_iterations + 1):
             delta = 0.0
             new_values = values.copy()
 
@@ -76,8 +94,11 @@ class GridWorldSolution:
             max_val = max(max_val, values.max())
 
             self._maybe_visualize(
-                iteration=iteration, is_converged=(delta < self.theta),
-                values=values, delta=delta, theta=self.theta
+                iteration=iteration,
+                is_converged=(delta < self.theta),
+                values=values,
+                delta=delta,
+                theta=self.theta,
             )
 
             if delta < self.theta:
@@ -97,9 +118,9 @@ class GridWorldSolution:
 
         values[self.env.goal_position] = self.env.goal_reward
 
-        for iteration in range(1, self.max_iterations+1):
+        for iteration in range(1, self.max_iterations + 1):
             eval_iterations = 0
-            delta = float('inf')
+            delta = float("inf")
             while delta > self.theta:
                 eval_iterations += 1
                 delta = 0.0
@@ -119,15 +140,21 @@ class GridWorldSolution:
                 values = new_values
 
             self._maybe_visualize(
-                iteration=iteration, is_converged=False, values=values,
-                policy=policy, eval_iterations=eval_iterations
+                iteration=iteration,
+                is_converged=False,
+                values=values,
+                policy=policy,
+                eval_iterations=eval_iterations,
             )
 
             policy_stable = self._policy_improvement(policy, values)
 
             self._maybe_visualize(
-                iteration=iteration, is_converged=policy_stable, values=values,
-                policy=policy, policy_stable=policy_stable
+                iteration=iteration,
+                is_converged=policy_stable,
+                values=values,
+                policy=policy,
+                policy_stable=policy_stable,
             )
 
             if policy_stable:
@@ -150,40 +177,28 @@ class GridWorldSolution:
         }
 
     def _is_valid_state(self, state: tuple[int, int]) -> bool:
-        return (
-            state not in self.env.obstacle_positions and
-            state != self.env.goal_position
-        )
+        return state not in self.env.obstacle_positions and state != self.env.goal_position
 
     def _maybe_visualize(
-        self, iteration: int, is_converged: bool = False, **vis_params
-    ):
-        should_visualize = (
-            iteration % self.vis_interval == 0 or
-            iteration == 1 or
-            is_converged
-        )
+        self, iteration: int, is_converged: bool = False, **vis_params: dict[str, Any]
+    ) -> None:
+        should_visualize = iteration % self.vis_interval == 0 or iteration == 1 or is_converged
 
         if self.visualize and should_visualize:
             self.visualizer.visualize_iteration(iteration=iteration, **vis_params)
             time.sleep(self.sleep_time)
 
-    def _calculate_best_action_value(
-        self, state: tuple[int, int], values: np.ndarray
-    ) -> float:
+    def _calculate_best_action_value(self, state: tuple[int, int], values: np.ndarray) -> float:
         return max(self._get_action_values(state, values).values())
 
-    def _get_action_values(
-        self, state: tuple[int, int], values: np.ndarray
-    ) -> dict[str, float]:
+    def _get_action_values(self, state: tuple[int, int], values: np.ndarray) -> dict[str, float]:
         return {
             action: self._calculate_action_value(state, action, values)
             for action in self.env.ACTIONS
         }
 
     def _calculate_action_value(
-        self, state: tuple[int, int], action: str,
-        values: np.ndarray
+        self, state: tuple[int, int], action: str, values: np.ndarray
     ) -> float:
         original_pos = self.env.current_position
         self.env.current_position = state
@@ -207,12 +222,9 @@ class GridWorldSolution:
                 policy[state] = max(action_values, key=action_values.get)
         return policy
 
-    def _policy_improvement(
-        self, policy: dict, values: np.ndarray
-    ) -> bool:
+    def _policy_improvement(self, policy: dict, values: np.ndarray) -> bool:
         policy_stable = True
-        for state in policy:
-            old_action = policy[state]
+        for state, old_action in policy.items():
             action_values = self._get_action_values(state, values)
             policy[state] = max(action_values, key=action_values.get)
             if policy[state] != old_action:
@@ -222,18 +234,18 @@ class GridWorldSolution:
     def visualize_policy(self) -> tuple[np.ndarray, np.ndarray]:
         self.visualizer.visualize_values_and_policy(self.values, self.policy)
 
-        policy_grid = np.full((self.env.height, self.env.width), ' ', dtype=object)
+        policy_grid = np.full((self.env.height, self.env.width), " ", dtype=object)
         value_grid = np.zeros_like(self.values)
 
         for i in range(self.env.height):
             for j in range(self.env.width):
                 if (i, j) == self.env.goal_position:
-                    policy_grid[i, j] = 'G'
+                    policy_grid[i, j] = "G"
                     value_grid[i, j] = self.env.goal_reward
                 elif (i, j) in self.env.obstacle_positions:
-                    policy_grid[i, j] = '#'
+                    policy_grid[i, j] = "#"
                 else:
-                    policy_grid[i, j] = ARROWS.get(self.policy.get((i, j), ''), '?')
+                    policy_grid[i, j] = ARROWS.get(self.policy.get((i, j), ""), "?")
                     value_grid[i, j] = self.values[i, j]
 
         return policy_grid, value_grid
@@ -256,17 +268,15 @@ class GridWorldSolution:
                 if isinstance(cell, float):
                     cells.append(f"{cell:>{cell_width}{fmt}}".replace("-", "−"))
                 else:
-                    cells.append(f"{str(cell):^{cell_width}}")
+                    cells.append(f"{cell!s:^{cell_width}}")
             print(f"| {' | '.join(cells)} |")
             print(border)
 
-    def execute_policy(
-        self, max_steps: int = 100, render: bool = True
-    ) -> tuple[float, int]:
+    def execute_policy(self, max_steps: int = 100, render: bool = True) -> tuple[float, int]:
         self.env.reset()
         total_reward = 0.0
 
-        for step in range(1, max_steps+1):
+        for step in range(1, max_steps + 1):
             if render:
                 print(f"Step {step}: Current reward: {total_reward}")
                 self.env.render(clear_screen=True)

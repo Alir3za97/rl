@@ -1,12 +1,34 @@
 import math
+
 import numpy as np
+
+
+class Action:
+    LEFT = 0
+    RIGHT = 1
 
 
 class PoleBalancingEnvironment:
     def __init__(
-        self, gravity: float = 9.8, cart_mass: float = 10.0, pole_mass: float = 0.001,
-        pole_length: float = 15, force_magnitude: float = 30.0, dt: float = 0.002
-    ):
+        self,
+        gravity: float = 9.8,
+        cart_mass: float = 10.0,
+        pole_mass: float = 0.001,
+        pole_length: float = 15,
+        force_magnitude: float = 30.0,
+        dt: float = 0.002,
+    ) -> None:
+        """Initialize the Pole Balancing Environment.
+
+        Args:
+            gravity: The gravity of the environment.
+            cart_mass: The mass of the cart.
+            pole_mass: The mass of the pole.
+            pole_length: The length of the pole.
+            force_magnitude: The magnitude of the force applied to the cart.
+            dt: The timestep of the environment.
+
+        """
         # Physics parameters
         self.gravity = gravity
         self.cart_mass = cart_mass
@@ -22,21 +44,23 @@ class PoleBalancingEnvironment:
         self.x_threshold = 2000
         self.theta_threshold = 90 * 2 * math.pi / 360
 
-    def reset(self):
-        self.state = np.array([
-            0,  # x
-            0,  # x_dot
-            np.random.uniform(-0.05, 0.05),  # theta
-            0   # theta_dot
-        ])
+    def reset(self) -> np.ndarray:
+        self.state = np.array(
+            [
+                0,  # x
+                0,  # x_dot
+                np.random.uniform(-0.05, 0.05),  # theta
+                0,  # theta_dot
+            ]
+        )
         return self.state.copy()
 
-    def step(self, action):
+    def step(self, action: Action) -> tuple[np.ndarray, float, bool, dict]:
         # Convert action to force direction
         force = 0
-        if action == 1:  # Right force only when action is 1
+        if action == Action.RIGHT:  # Right force only when action is 1
             force = self.force_magnitude
-        elif action == 2:  # Left force only when action is 2
+        elif action == Action.LEFT:  # Left force only when action is 2
             force = -self.force_magnitude
 
         # Deconstruct state variables

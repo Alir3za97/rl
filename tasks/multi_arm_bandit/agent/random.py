@@ -1,10 +1,16 @@
 import random
 
-from n_armed_bandit.agent.base import Agent
+from multi_arm_bandit.agent.base import Agent
 
 
 class RandomAgent(Agent):
-    def __init__(self, n_arms: int):
+    def __init__(self, n_arms: int) -> None:
+        """Initialize the Random Agent.
+
+        Args:
+            n_arms: Number of arms.
+
+        """
         self.n_arms = n_arms
 
     def select_arm(self) -> int:

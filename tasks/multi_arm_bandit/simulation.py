@@ -1,15 +1,20 @@
-from typing import List
-
-from n_armed_bandit.agent.base import Agent
-from n_armed_bandit.bandits.base import Bandit
+from multi_arm_bandit.agent.base import Agent
+from multi_arm_bandit.bandits.base import Bandit
 
 
 class Simulation:
-    def __init__(self, agent: Agent, bandit: Bandit):
+    def __init__(self, agent: Agent, bandit: Bandit) -> None:
+        """Initialize the Simulation.
+
+        Args:
+            agent: The agent to use in the simulation.
+            bandit: The bandit to use in the simulation.
+
+        """
         self.agent = agent
         self.bandit = bandit
 
-    def run(self, n_steps: int) -> List[float]:
+    def run(self, n_steps: int) -> list[float]:
         """
         Run the simulation for a given number of steps.
 
@@ -17,9 +22,9 @@ class Simulation:
             n_steps (int): The number of steps to run the simulation for.
 
         Returns:
-            List[float]: The rewards for each step.
-        """
+            list[float]: The rewards for each step.
 
+        """
         self.reset()
 
         rewards = []

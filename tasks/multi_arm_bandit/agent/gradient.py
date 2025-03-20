@@ -1,10 +1,17 @@
 import numpy as np
 
-from n_armed_bandit.agent import Agent
+from multi_arm_bandit.agent import Agent
 
 
 class GradientAgent(Agent):
-    def __init__(self, n_arms: int, alpha: float):
+    def __init__(self, n_arms: int, alpha: float) -> None:
+        """Initialize the Gradient Agent.
+
+        Args:
+            n_arms: Number of arms.
+            alpha: The learning rate.
+
+        """
         self.n_arms = n_arms
         self.alpha = alpha
         self.preferences = [0] * n_arms

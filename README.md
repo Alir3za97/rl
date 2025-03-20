@@ -2,10 +2,8 @@
 
 This project is the simulations of methods and problems discussed in _Reinforcement Learning by *Andrew Barto* and *Richard S. Sutton*_.
 
-## Project Structure
+## Tasks
 
-Each chapter's code is found in it's own directory denoted by ch{i}.
-
-## Chapters
-
-- [Chapter 2: Multi-arm Bandits](./ch1/README.md)
+- [Grid World](./tasks/grid_world/README.md)
+- [Multi-arm Bandits](./tasks/multi_arm_bandit/README.md)
+- [Pole Balancing](./tasks/pole_balancing/README.md)

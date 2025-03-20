@@ -1,25 +1,36 @@
-from typing import Optional, Dict, List
 from collections import defaultdict
-import numpy as np
-from tqdm import tqdm
-import matplotlib.pyplot as plt
-import seaborn as sns
 
-from n_armed_bandit.agent import Agent
-from n_armed_bandit.bandits import Bandit
-from n_armed_bandit.simulation import Simulation
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+from tqdm import tqdm
+
+from multi_arm_bandit.agent import Agent
+from multi_arm_bandit.bandits import Bandit
+from multi_arm_bandit.simulation import Simulation
 
 
 class ExperimentManager:
     def __init__(
         self,
-        agents: Dict[str, Agent],
+        agents: dict[str, Agent],
         bandit: Bandit,
         n_steps: int,
         n_runs: int = 1,
-        plot_title: Optional[str] = None,
-        save_path: Optional[str] = None,
-    ):
+        plot_title: str | None = None,
+        save_path: str | None = None,
+    ) -> None:
+        """Initialize the Experiment Manager.
+
+        Args:
+            agents: The agents to use in the experiment.
+            bandit: The bandit to use in the experiment.
+            n_steps: The number of steps to run the experiment.
+            n_runs: The number of runs to run the experiment.
+            plot_title: The title of the plot.
+            save_path: The path to save the plot.
+
+        """
         self.agents = agents
         self.bandit = bandit
         self.n_steps = n_steps
@@ -27,7 +38,7 @@ class ExperimentManager:
         self.save_path = save_path
         self.plot_title = plot_title
 
-    def run(self):
+    def run(self) -> None:
         results = defaultdict(list)
         for name, agent in (p_bar := tqdm(self.agents.items())):
             p_bar.set_description(f"Running {name}")
@@ -39,10 +50,16 @@ class ExperimentManager:
 
         self._plot_results(results)
 
-    def _plot_results(self, results: Dict[str, List[float]]):
-        sns.set_theme(style="whitegrid", context="notebook", palette="deep", font="DejaVu Sans", font_scale=1.2)
-        plt.rcParams['font.family'] = 'DejaVu Sans'  # Fallback for matplotlib
-        plt.rcParams['axes.unicode_minus'] = False  # Fix minus sign rendering
+    def _plot_results(self, results: dict[str, list[float]]) -> None:
+        sns.set_theme(
+            style="whitegrid",
+            context="notebook",
+            palette="deep",
+            font="DejaVu Sans",
+            font_scale=1.2,
+        )
+        plt.rcParams["font.family"] = "DejaVu Sans"  # Fallback for matplotlib
+        plt.rcParams["axes.unicode_minus"] = False  # Fix minus sign rendering
 
         plt.figure(figsize=(12, 8))
 
@@ -63,20 +80,24 @@ class ExperimentManager:
                 y=normalized_average_runs_reward,
                 label=name,
                 color=palette[i],
-                linewidth=2.5
+                linewidth=2.5,
             )
 
         plt.title(self.plot_title, fontsize=24, pad=20)
         plt.xlabel("Steps", fontsize=18, labelpad=10)
         plt.ylabel("Average Reward", fontsize=18, labelpad=10)
-        plt.tick_params(axis='both', which='major', labelsize=12)
+        plt.tick_params(axis="both", which="major", labelsize=12)
 
         legend = plt.legend(
-            fontsize=14, frameon=True, fancybox=True, framealpha=0.9, loc='best',
-            edgecolor='lightgray'
+            fontsize=14,
+            frameon=True,
+            fancybox=True,
+            framealpha=0.9,
+            loc="best",
+            edgecolor="lightgray",
         )
         legend.get_frame().set_linewidth(1.0)
 
         plt.tight_layout()
 
-        plt.savefig(self.save_path, dpi=300, bbox_inches='tight')
+        plt.savefig(self.save_path, dpi=300, bbox_inches="tight")

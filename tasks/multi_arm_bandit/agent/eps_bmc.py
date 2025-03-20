@@ -1,15 +1,20 @@
 import numpy as np
-import scipy.stats as stats
+from scipy import stats
 
-from n_armed_bandit.agent.base import Agent
+from multi_arm_bandit.agent.base import Agent
 
 
 class EpsilonBMCAgent(Agent):
     def __init__(
-        self, num_arms: int, eps_alpha: float = 1.0, eps_beta: float = 1.0,
-        lambda_: float = 1.0, epsilon_min: float = 0.01
-    ):
-        """
+        self,
+        num_arms: int,
+        eps_alpha: float = 1.0,
+        eps_beta: float = 1.0,
+        lambda_: float = 1.0,
+        epsilon_min: float = 0.01,
+    ) -> None:
+        """Initialize the Epsilon-BMC Agent.
+
         Epsilon-BMC: Adaptive Bayesian epsilon-greedy agent.
         https://arxiv.org/abs/2007.00869
 
@@ -30,13 +35,14 @@ class EpsilonBMCAgent(Agent):
             lambda_ (float): Initial prior precision (inverse variance)
                 for Normal-Gamma reward estimation
             epsilon_min (float): Minimum exploration probability
+
         """
         self.init_args = {
             "num_arms": num_arms,
             "eps_alpha": eps_alpha,
             "eps_beta": eps_beta,
             "lambda_": lambda_,
-            "epsilon_min": epsilon_min
+            "epsilon_min": epsilon_min,
         }
         self.num_arms = num_arms
         self.eps_alpha = eps_alpha
@@ -69,7 +75,6 @@ class EpsilonBMCAgent(Agent):
         self._update_beta(reward, arm)
 
     def _update_arm_parameters(self, arm: int, reward: float) -> None:
-        """Update Normal-Gamma parameters using Bayesian update"""
         prev_kappa = self.kappa[arm]
         prev_mu = self.mu[arm]
         prev_alpha = self.alpha[arm]
@@ -78,7 +83,7 @@ class EpsilonBMCAgent(Agent):
         new_kappa = prev_kappa + 1
         new_mu = (prev_kappa * prev_mu + reward) / new_kappa
         new_alpha = prev_alpha + 0.5
-        new_beta = prev_beta + 0.5 * prev_kappa / new_kappa * (reward - prev_mu)**2
+        new_beta = prev_beta + 0.5 * prev_kappa / new_kappa * (reward - prev_mu) ** 2
 
         self.kappa[arm] = new_kappa
         self.mu[arm] = new_mu
@@ -86,7 +91,6 @@ class EpsilonBMCAgent(Agent):
         self.beta[arm] = new_beta
 
     def _update_posterior_estimates(self, arm: int) -> None:
-        """Update mean and variance estimates for arm"""
         self.mean_reward[arm] = self.mu[arm]
 
         var_numerator = self.beta[arm]
@@ -105,9 +109,7 @@ class EpsilonBMCAgent(Agent):
         nu = 2 * self.alpha[arm]
         loc = self.mu[arm]
         scale = np.sqrt(
-            self.beta[arm] *
-            (self.kappa[arm] + 1) /
-            (self.alpha[arm] * self.kappa[arm])
+            self.beta[arm] * (self.kappa[arm] + 1) / (self.alpha[arm] * self.kappa[arm])
         )
 
         if perturb:
