@@ -2,15 +2,6 @@ import time
 from typing import ClassVar
 
 
-class Colors:
-    RESET = "\033[0m"
-    BOLD = "\033[1m"
-    RED = "\033[31m"
-    GREEN = "\033[32m"
-    BLUE = "\033[34m"
-    MAGENTA = "\033[35m"
-
-
 class GridWorld:
     ACTIONS = ("up", "down", "left", "right")
     KING_ACTIONS = ("up", "down", "left", "right", "up-left", "up-right", "down-left", "down-right")
@@ -82,6 +73,8 @@ class GridWorld:
         self.allowed_actions = self.KING_ACTIONS if allow_king_actions else self.ACTIONS
         self.action_map = self.KING_ACTION_MAP if allow_king_actions else self.ACTION_MAP
 
+        self.renderer = GridWorldTerminalRenderer(self)
+
     def reset(self) -> tuple[int, int]:
         self.current_position = self.start_position
         return self.current_position
@@ -107,18 +100,35 @@ class GridWorld:
         return next_position, self.step_reward, False
 
     def render(self, clear_screen: bool = True, sleep_time: float = 0.1) -> None:
-        if clear_screen:
-            # ANSI escape code to clear screen and move cursor to home position
-            print("\033[H\033[J", end="")
+        self.renderer.render(clear_screen, sleep_time)
 
-        if sleep_time:
-            time.sleep(sleep_time)
+    def close(self) -> None:
+        self.renderer.close()
 
-        # Create a mapping for teleport colors
+
+class Colors:
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
+    RED = "\033[31m"
+    GREEN = "\033[32m"
+    BLUE = "\033[34m"
+    MAGENTA = "\033[35m"
+
+
+class GridWorldTerminalRenderer:
+    def __init__(self, env: GridWorld) -> None:
+        """Initialize the GridWorld terminal renderer.
+
+        Args:
+            env: The GridWorld environment.
+
+        """
+        self.env = env
+
+    def _get_teleport_colors(self) -> dict[tuple[int, int], str]:
         teleport_colors = {}
         teleport_count = 0
 
-        # Color choices with better differentiation - using diverse colors from the 256-color palette
         color_codes = [
             196,  # bright red
             46,  # bright green
@@ -132,8 +142,7 @@ class GridWorld:
             129,  # magenta
         ]
 
-        # Assign unique colors to each teleport pair
-        for source, dest in self.teleports.items():
+        for source, dest in self.env.teleports.items():
             if source not in teleport_colors:
                 color_idx = teleport_count % len(color_codes)
                 color_code = color_codes[color_idx]
@@ -141,35 +150,50 @@ class GridWorld:
                 teleport_colors[dest] = f"\033[38;5;{color_code}m"
                 teleport_count += 1
 
+        return teleport_colors
+
+    def _get_cell_char(  # noqa: PLR0911
+        self, position: tuple[int, int], teleport_colors: dict[tuple[int, int], str]
+    ) -> str:
+        if position == self.env.current_position:
+            return f"{Colors.BOLD}{Colors.BLUE}A{Colors.RESET}"
+        if position == self.env.goal_position:
+            return f"{Colors.BOLD}{Colors.GREEN}G{Colors.RESET}"
+        if position == self.env.start_position:
+            return f"{Colors.BOLD}{Colors.MAGENTA}S{Colors.RESET}"
+        if position in self.env.obstacle_positions:
+            return f"{Colors.BOLD}{Colors.RED}#{Colors.RESET}"
+        if position in self.env.teleports:
+            return f"{Colors.BOLD}{teleport_colors[position]}0{Colors.RESET}"
+        if position in self.env.teleports.values():
+            return f"{Colors.BOLD}{teleport_colors[position]}o{Colors.RESET}"
+        return f"{Colors.RESET}·{Colors.RESET}"
+
+    def render(self, clear_screen: bool = True, sleep_time: float = 0.1) -> None:
+        if clear_screen:
+            # ANSI escape code to clear screen and move cursor to home position
+            print("\033[H\033[J", end="")
+
+        if sleep_time:
+            time.sleep(sleep_time)
+
+        # Create a mapping for teleport colors
+        teleport_colors = self._get_teleport_colors()
+
         # Create grid representation
         grid = []
-        for i in range(self.height):
+        for i in range(self.env.height):
             row = []
-            for j in range(self.width):
+            for j in range(self.env.width):
                 position = (i, j)
-                if position == self.current_position:
-                    cell = f"{Colors.BOLD}{Colors.BLUE}A{Colors.RESET}"
-                elif position == self.goal_position:
-                    cell = f"{Colors.BOLD}{Colors.GREEN}G{Colors.RESET}"
-                elif position == self.start_position:
-                    cell = f"{Colors.BOLD}{Colors.MAGENTA}S{Colors.RESET}"
-                elif position in self.obstacle_positions:
-                    cell = f"{Colors.BOLD}{Colors.RED}#{Colors.RESET}"
-                elif position in self.teleports:
-                    # Display source teleport with '0'
-                    cell = f"{Colors.BOLD}{teleport_colors[position]}0{Colors.RESET}"
-                elif position in self.teleports.values():
-                    # Display destination teleport with 'o'
-                    cell = f"{Colors.BOLD}{teleport_colors[position]}o{Colors.RESET}"
-                else:
-                    cell = f"{Colors.RESET}·{Colors.RESET}"
+                cell = self._get_cell_char(position, teleport_colors)
                 row.append(cell)
             grid.append(row)
 
         print(f"\n{Colors.BOLD}Grid World Environment{Colors.RESET}")
-        print(f"{Colors.BOLD}Position: {self.current_position}{Colors.RESET}")
+        print(f"{Colors.BOLD}Position: {self.env.current_position}{Colors.RESET}")
 
-        print(f"{Colors.MAGENTA}+{'-' * (self.width * 2 + 1)}+{Colors.RESET}")
+        print(f"{Colors.MAGENTA}+{'-' * (self.env.width * 2 + 1)}+{Colors.RESET}")
 
         for row in grid:
             print(
@@ -178,7 +202,7 @@ class GridWorld:
                 + f" {Colors.MAGENTA}|{Colors.RESET}"
             )
 
-        print(f"{Colors.MAGENTA}+{'-' * (self.width * 2 + 1)}+{Colors.RESET}")
+        print(f"{Colors.MAGENTA}+{'-' * (self.env.width * 2 + 1)}+{Colors.RESET}")
 
         print(f"\n{Colors.BOLD}Legend:{Colors.RESET}")
         print(f"{Colors.BOLD}{Colors.BLUE}A{Colors.RESET} - Agent")
@@ -187,10 +211,7 @@ class GridWorld:
         print(f"{Colors.BOLD}{Colors.RED}#{Colors.RESET} - Obstacle")
 
         # Display teleport legend
-        if self.teleports:
+        if self.env.teleports:
             print(f"{Colors.BOLD}Colored '0'/'o'{Colors.RESET} - Teleport entrance/exit pairs")
 
         print(f"{Colors.RESET}·{Colors.RESET} - Empty space")
-
-    def close(self) -> None:
-        pass
