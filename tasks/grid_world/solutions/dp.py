@@ -7,7 +7,7 @@ from grid_world.env import GridWorld
 from grid_world.visualizer import ARROWS, GridWorldVisualizer
 
 
-class GridWorldSolution:
+class GridWorldDP:
     def __init__(
         self,
         env: GridWorld,
@@ -170,7 +170,7 @@ class GridWorldSolution:
 
     def _init_policy(self) -> dict[tuple[int, int], str]:
         return {
-            (i, j): np.random.choice(self.env.ACTIONS)
+            (i, j): np.random.choice(self.env.allowed_actions)
             for i in range(self.env.height)
             for j in range(self.env.width)
             if self._is_valid_state((i, j))
@@ -194,7 +194,7 @@ class GridWorldSolution:
     def _get_action_values(self, state: tuple[int, int], values: np.ndarray) -> dict[str, float]:
         return {
             action: self._calculate_action_value(state, action, values)
-            for action in self.env.ACTIONS
+            for action in self.env.allowed_actions
         }
 
     def _calculate_action_value(

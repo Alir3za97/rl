@@ -8,7 +8,16 @@ from matplotlib.colors import LinearSegmentedColormap
 from grid_world.env import GridWorld
 
 # Direction arrows for visualization
-ARROWS = {"up": "↑", "down": "↓", "left": "←", "right": "→"}
+ARROWS = {
+    "up": "↑",
+    "down": "↓",
+    "left": "←",
+    "right": "→",
+    "up-left": "↖",
+    "up-right": "↗",
+    "down-left": "↙",
+    "down-right": "↘",
+}
 
 
 class GridWorldVisualizer:
@@ -33,6 +42,10 @@ class GridWorldVisualizer:
             "down": (0, 0.4),
             "left": (-0.4, 0),
             "right": (0.4, 0),
+            "up-left": (-0.4, -0.4),
+            "up-right": (0.4, -0.4),
+            "down-left": (-0.4, 0.4),
+            "down-right": (0.4, 0.4),
         }
         # Create persistent figure and axes
         self.fig = None
@@ -256,7 +269,7 @@ class GridWorldVisualizer:
         text = ax.text(
             j,
             i,
-            f"{value:.2f}",
+            f"{value:.1f}",
             ha="center",
             va="center",
             color=self.text_color,

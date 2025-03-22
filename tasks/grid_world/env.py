@@ -13,12 +13,24 @@ class Colors:
 
 class GridWorld:
     ACTIONS = ("up", "down", "left", "right")
+    KING_ACTIONS = ("up", "down", "left", "right", "up-left", "up-right", "down-left", "down-right")
 
     ACTION_MAP: ClassVar[dict[str, tuple[int, int]]] = {
         "up": (-1, 0),
         "down": (1, 0),
         "left": (0, -1),
         "right": (0, 1),
+    }
+
+    KING_ACTION_MAP: ClassVar[dict[str, tuple[int, int]]] = {
+        "up": (-1, 0),
+        "down": (1, 0),
+        "left": (0, -1),
+        "right": (0, 1),
+        "up-left": (-1, -1),
+        "up-right": (-1, 1),
+        "down-left": (1, -1),
+        "down-right": (1, 1),
     }
 
     def __init__(
@@ -28,6 +40,8 @@ class GridWorld:
         start_position: tuple[int, int],
         goal_position: tuple[int, int],
         obstacle_positions: list[tuple[int, int]],
+        teleports: dict[tuple[int, int], tuple[int, int]],
+        allow_king_actions: bool = False,
         blocked_reward: float = -1,
         goal_reward: float = 1,
         step_reward: float = 0,
@@ -40,6 +54,8 @@ class GridWorld:
             start_position: The starting position of the agent.
             goal_position: The goal position of the agent.
             obstacle_positions: The positions of the obstacles.
+            teleports: The positions of the teleports.
+            allow_king_actions: Whether to allow king actions.
             blocked_reward: The reward for blocked actions.
             goal_reward: The reward for reaching the goal.
             step_reward: The reward for each step.
@@ -51,27 +67,37 @@ class GridWorld:
         self.current_position = start_position
         self.goal_position = goal_position
         self.boundary_positions = set(
-            [(-1, y) for y in range(self.height)]
-            + [(self.width, y) for y in range(self.height)]
-            + [(x, -1) for x in range(self.width)]
-            + [(x, self.height) for x in range(self.width)]
+            [(-1, y) for y in range(-1, self.height + 1)]
+            + [(self.width, y) for y in range(-1, self.height + 1)]
+            + [(x, -1) for x in range(-1, self.width + 1)]
+            + [(x, self.height) for x in range(-1, self.width + 1)]
         )
 
         self.obstacle_positions = set(obstacle_positions)
+        self.teleports = teleports
         self.blocked_reward = blocked_reward
         self.goal_reward = goal_reward
         self.step_reward = step_reward
+
+        self.allowed_actions = self.KING_ACTIONS if allow_king_actions else self.ACTIONS
+        self.action_map = self.KING_ACTION_MAP if allow_king_actions else self.ACTION_MAP
 
     def reset(self) -> tuple[int, int]:
         self.current_position = self.start_position
         return self.current_position
 
     def step(self, action: str) -> tuple[tuple[int, int], float, bool]:
-        dx, dy = self.ACTION_MAP[action]
+        if action not in self.allowed_actions:
+            raise ValueError(f"Invalid action: {action}")
+
+        dx, dy = self.action_map[action]
         next_position = (self.current_position[0] + dx, self.current_position[1] + dy)
 
         if next_position in self.obstacle_positions or next_position in self.boundary_positions:
             return self.current_position, self.blocked_reward, False
+
+        if next_position in self.teleports:
+            next_position = self.teleports[next_position]
 
         self.current_position = next_position
 
@@ -88,6 +114,33 @@ class GridWorld:
         if sleep_time:
             time.sleep(sleep_time)
 
+        # Create a mapping for teleport colors
+        teleport_colors = {}
+        teleport_count = 0
+
+        # Color choices with better differentiation - using diverse colors from the 256-color palette
+        color_codes = [
+            196,  # bright red
+            46,  # bright green
+            21,  # blue
+            226,  # yellow
+            201,  # pink
+            208,  # orange
+            93,  # purple
+            39,  # cyan
+            154,  # lime
+            129,  # magenta
+        ]
+
+        # Assign unique colors to each teleport pair
+        for source, dest in self.teleports.items():
+            if source not in teleport_colors:
+                color_idx = teleport_count % len(color_codes)
+                color_code = color_codes[color_idx]
+                teleport_colors[source] = f"\033[38;5;{color_code}m"
+                teleport_colors[dest] = f"\033[38;5;{color_code}m"
+                teleport_count += 1
+
         # Create grid representation
         grid = []
         for i in range(self.height):
@@ -98,8 +151,16 @@ class GridWorld:
                     cell = f"{Colors.BOLD}{Colors.BLUE}A{Colors.RESET}"
                 elif position == self.goal_position:
                     cell = f"{Colors.BOLD}{Colors.GREEN}G{Colors.RESET}"
+                elif position == self.start_position:
+                    cell = f"{Colors.BOLD}{Colors.MAGENTA}S{Colors.RESET}"
                 elif position in self.obstacle_positions:
                     cell = f"{Colors.BOLD}{Colors.RED}#{Colors.RESET}"
+                elif position in self.teleports:
+                    # Display source teleport with '0'
+                    cell = f"{Colors.BOLD}{teleport_colors[position]}0{Colors.RESET}"
+                elif position in self.teleports.values():
+                    # Display destination teleport with 'o'
+                    cell = f"{Colors.BOLD}{teleport_colors[position]}o{Colors.RESET}"
                 else:
                     cell = f"{Colors.RESET}·{Colors.RESET}"
                 row.append(cell)
@@ -121,8 +182,14 @@ class GridWorld:
 
         print(f"\n{Colors.BOLD}Legend:{Colors.RESET}")
         print(f"{Colors.BOLD}{Colors.BLUE}A{Colors.RESET} - Agent")
+        print(f"{Colors.BOLD}{Colors.MAGENTA}S{Colors.RESET} - Start")
         print(f"{Colors.BOLD}{Colors.GREEN}G{Colors.RESET} - Goal")
         print(f"{Colors.BOLD}{Colors.RED}#{Colors.RESET} - Obstacle")
+
+        # Display teleport legend
+        if self.teleports:
+            print(f"{Colors.BOLD}Colored '0'/'o'{Colors.RESET} - Teleport entrance/exit pairs")
+
         print(f"{Colors.RESET}·{Colors.RESET} - Empty space")
 
     def close(self) -> None:
