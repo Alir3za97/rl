@@ -3,11 +3,17 @@ from typing import Any
 
 import numpy as np
 
-from grid_world.env import GridWorld
-from grid_world.visualizer import ARROWS, GridWorldVisualizer
+from rl.tasks.grid_world.env import GridWorld
+from rl.tasks.grid_world.visualizer import ARROWS, GridWorldVisualizer
 
 
 class GridWorldDP:
+    """GridWorld solution using Dynamic Programming.
+
+    This implementation only exists for visualization purposes.
+    The general implementation is in `rl.algorithms.dp`.
+    """
+
     def __init__(
         self,
         env: GridWorld,

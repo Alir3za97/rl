@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 
-from grid_world.env import GridWorld
+from rl.tasks.grid_world.env import GridWorld
 
 # Direction arrows for visualization
 ARROWS = {

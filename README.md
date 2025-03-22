@@ -1,6 +1,6 @@
 # RL
 
-This project is the simulations of methods and problems discussed in _Reinforcement Learning by *Andrew Barto* and *Richard S. Sutton*_.
+This project is the simulations of methods and problems discussed in _Reinforcement Learning_ by _Andrew Barto_ and _Richard S. Sutton_.
 
 ## Tasks
 

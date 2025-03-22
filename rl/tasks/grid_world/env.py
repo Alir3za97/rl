@@ -1,19 +1,26 @@
 import time
-from typing import ClassVar
+from typing import ClassVar, TypeAlias
+
+from rl.core.env import ModelEnvironment
+from rl.core.types import Reward
+
+# Define specific types for GridWorld
+Position: TypeAlias = tuple[int, int]
+GridAction: TypeAlias = str
 
 
-class GridWorld:
+class GridWorld(ModelEnvironment[Position, GridAction]):
     ACTIONS = ("up", "down", "left", "right")
     KING_ACTIONS = ("up", "down", "left", "right", "up-left", "up-right", "down-left", "down-right")
 
-    ACTION_MAP: ClassVar[dict[str, tuple[int, int]]] = {
+    ACTION_MAP: ClassVar[dict[str, Position]] = {
         "up": (-1, 0),
         "down": (1, 0),
         "left": (0, -1),
         "right": (0, 1),
     }
 
-    KING_ACTION_MAP: ClassVar[dict[str, tuple[int, int]]] = {
+    KING_ACTION_MAP: ClassVar[dict[str, Position]] = {
         "up": (-1, 0),
         "down": (1, 0),
         "left": (0, -1),
@@ -28,10 +35,10 @@ class GridWorld:
         self,
         width: int,
         height: int,
-        start_position: tuple[int, int],
-        goal_position: tuple[int, int],
-        obstacle_positions: list[tuple[int, int]],
-        teleports: dict[tuple[int, int], tuple[int, int]],
+        start_position: Position,
+        goal_position: Position,
+        obstacle_positions: list[Position],
+        teleports: dict[Position, Position],
         allow_king_actions: bool = False,
         blocked_reward: float = -1,
         goal_reward: float = 1,
@@ -70,29 +77,80 @@ class GridWorld:
         self.goal_reward = goal_reward
         self.step_reward = step_reward
 
-        self.allowed_actions = self.KING_ACTIONS if allow_king_actions else self.ACTIONS
+        self.allowed_actions = set(self.KING_ACTIONS if allow_king_actions else self.ACTIONS)
         self.action_map = self.KING_ACTION_MAP if allow_king_actions else self.ACTION_MAP
 
         self.renderer = GridWorldTerminalRenderer(self)
+        self._all_states = self._compute_state_space()
 
-    def reset(self) -> tuple[int, int]:
+    def _compute_state_space(self) -> list[Position]:
+        """Compute all possible states in the environment."""
+        states = []
+        for i in range(self.height):
+            for j in range(self.width):
+                pos = (i, j)
+                # Skip obstacles and teleport entrances
+                if pos not in self.obstacle_positions and pos not in self.teleports:
+                    states.append(pos)
+        return states
+
+    @property
+    def current_state(self) -> Position:
+        return self.current_position
+
+    @property
+    def action_space(self) -> set[GridAction]:
+        """Return the action space of the environment."""
+        return self.allowed_actions
+
+    @property
+    def terminal_states(self) -> set[Position]:
+        """Return the terminal states of the environment."""
+        return {self.goal_position}
+
+    @property
+    def state_space(self) -> set[Position]:
+        """Return the state space of the environment."""
+        return set(self._all_states)
+
+    def get_possible_actions(self, state: Position) -> set[GridAction]:
+        """Return a list of possible actions for a given state."""
+        if state == self.goal_position:
+            return set()
+        return self.allowed_actions
+
+    def get_possible_transitions(
+        self, state: Position, action: GridAction
+    ) -> list[tuple[Position, float, Reward]]:
+        """Return a list of (next_state, probability, reward) tuples given a state and action."""
+        if action not in self.allowed_actions:
+            raise ValueError(f"Invalid action: {action}")
+
+        next_position, reward, _ = self._transition(state, action)
+        return [(next_position, 1, reward)]
+
+    def reset(self) -> Position:
         self.current_position = self.start_position
         return self.current_position
 
-    def step(self, action: str) -> tuple[tuple[int, int], float, bool]:
+    def step(self, action: GridAction) -> tuple[Position, Reward, bool]:
+        next_position, reward, done = self._transition(self.current_position, action)
+        self.current_position = next_position
+
+        return next_position, reward, done
+
+    def _transition(self, state: Position, action: GridAction) -> tuple[Position, Reward, bool]:
         if action not in self.allowed_actions:
             raise ValueError(f"Invalid action: {action}")
 
         dx, dy = self.action_map[action]
-        next_position = (self.current_position[0] + dx, self.current_position[1] + dy)
+        next_position = (state[0] + dx, state[1] + dy)
 
         if next_position in self.obstacle_positions or next_position in self.boundary_positions:
-            return self.current_position, self.blocked_reward, False
+            return state, self.blocked_reward, False
 
         if next_position in self.teleports:
             next_position = self.teleports[next_position]
-
-        self.current_position = next_position
 
         if next_position == self.goal_position:
             return next_position, self.goal_reward, True
@@ -125,7 +183,7 @@ class GridWorldTerminalRenderer:
         """
         self.env = env
 
-    def _get_teleport_colors(self) -> dict[tuple[int, int], str]:
+    def _get_teleport_colors(self) -> dict[Position, str]:
         teleport_colors = {}
         teleport_count = 0
 
@@ -153,7 +211,7 @@ class GridWorldTerminalRenderer:
         return teleport_colors
 
     def _get_cell_char(  # noqa: PLR0911
-        self, position: tuple[int, int], teleport_colors: dict[tuple[int, int], str]
+        self, position: Position, teleport_colors: dict[Position, str]
     ) -> str:
         if position == self.env.current_position:
             return f"{Colors.BOLD}{Colors.BLUE}A{Colors.RESET}"
