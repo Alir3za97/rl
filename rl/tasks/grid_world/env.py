@@ -73,6 +73,7 @@ class GridWorld(ModelEnvironment[Position, GridAction]):
 
         self.obstacle_positions = set(obstacle_positions)
         self.teleports = teleports
+        self.allow_king_actions = allow_king_actions
         self.blocked_reward = blocked_reward
         self.goal_reward = goal_reward
         self.step_reward = step_reward
@@ -162,6 +163,21 @@ class GridWorld(ModelEnvironment[Position, GridAction]):
 
     def close(self) -> None:
         self.renderer.close()
+
+    def copy(self) -> "GridWorld":
+        """Return a copy of the environment."""
+        return GridWorld(
+            width=self.width,
+            height=self.height,
+            start_position=self.start_position,
+            goal_position=self.goal_position,
+            obstacle_positions=self.obstacle_positions,
+            teleports=self.teleports,
+            allow_king_actions=self.allow_king_actions,
+            blocked_reward=self.blocked_reward,
+            goal_reward=self.goal_reward,
+            step_reward=self.step_reward,
+        )
 
 
 class Colors:
