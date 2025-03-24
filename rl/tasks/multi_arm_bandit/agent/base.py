@@ -10,3 +10,6 @@ class Agent(ABC):
 
     @abstractmethod
     def reset(self) -> None: ...
+
+    @abstractmethod
+    def copy(self) -> "Agent": ...

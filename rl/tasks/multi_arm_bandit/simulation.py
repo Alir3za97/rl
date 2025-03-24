@@ -1,5 +1,5 @@
-from multi_arm_bandit.agent.base import Agent
-from multi_arm_bandit.bandits.base import Bandit
+from rl.tasks.multi_arm_bandit.agent.base import Agent
+from rl.tasks.multi_arm_bandit.bandits.base import Bandit
 
 
 class Simulation:

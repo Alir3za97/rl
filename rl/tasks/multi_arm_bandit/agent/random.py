@@ -1,6 +1,6 @@
 import random
 
-from multi_arm_bandit.agent.base import Agent
+from rl.tasks.multi_arm_bandit.agent.base import Agent
 
 
 class RandomAgent(Agent):
@@ -21,3 +21,6 @@ class RandomAgent(Agent):
 
     def reset(self) -> None:
         pass
+
+    def copy(self) -> "RandomAgent":
+        return RandomAgent(self.n_arms)

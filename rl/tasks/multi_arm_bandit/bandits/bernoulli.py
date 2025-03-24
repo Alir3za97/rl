@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.stats import bernoulli
 
-from multi_arm_bandit.bandits.base import Bandit
+from rl.tasks.multi_arm_bandit.bandits.base import Bandit
 
 
 class BernoulliBandit(Bandit):
@@ -24,6 +24,9 @@ class BernoulliBandit(Bandit):
 
     def reset(self) -> None:
         pass
+
+    def copy(self) -> "BernoulliBandit":
+        return BernoulliBandit(self.n_arms, self.ps)
 
 
 class NonStationaryBernoulliBandit(BernoulliBandit):
@@ -71,3 +74,6 @@ class NonStationaryBernoulliBandit(BernoulliBandit):
     def reset(self) -> None:
         self.ps = self.original_ps.copy()
         self.t = 0
+
+    def copy(self) -> "NonStationaryBernoulliBandit":
+        return NonStationaryBernoulliBandit(self.n_arms, self.ps, self.step_std, self.walk_every)

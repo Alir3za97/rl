@@ -1,21 +1,25 @@
 agents:
+  "TS: α=1, β=1":
+    class_path: "rl.tasks.multi_arm_bandit.agent.ThompsonSamplingAgent"
+    init_args:
+      n_arms: 11
   "UCB: c=0.1":
-    class_path: "n_armed_bandit.agent.UCBAgent"
+    class_path: "rl.tasks.multi_arm_bandit.agent.UCBAgent"
     init_args:
       n_arms: 11
       c: 0.1
   "EG: ε=0.1":
-    class_path: "n_armed_bandit.agent.EpsilonGreedyAgent"
+    class_path: "rl.tasks.multi_arm_bandit.agent.EpsilonGreedyAgent"
     init_args:
       n_arms: 11
       epsilon: 0.1
   "Gradient: α=0.9":
-    class_path: "n_armed_bandit.agent.GradientAgent"
+    class_path: "rl.tasks.multi_arm_bandit.agent.GradientAgent"
     init_args:
       n_arms: 11
       alpha: 0.9
   "Epsilon-BMC (α=1, β=1, λ=0.1)":
-    class_path: "n_armed_bandit.agent.eps_bmc.EpsilonBMCAgent"
+    class_path: "rl.tasks.multi_arm_bandit.agent.eps_bmc.EpsilonBMCAgent"
     init_args:
       num_arms: 11
       eps_alpha: 1.0
@@ -23,11 +27,11 @@ agents:
       lambda_: 0.1
       epsilon_min: 0.01
 bandit:
-  class_path: "n_armed_bandit.bandits.BernoulliBandit"
+  class_path: "rl.tasks.multi_arm_bandit.bandits.BernoulliBandit"
   init_args:
     n_arms: 11
     ps: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-n_steps: 500
+n_steps: 1000
 n_runs: 1000
 plot_title: "All Agents on 11-Armed Bernoulli Bandit"
-save_path: n_armed_bandit/results/all_agents_bernoulli.png
+save_path: rl/tasks/multi_arm_bandit/results/all_agents_bernoulli.png

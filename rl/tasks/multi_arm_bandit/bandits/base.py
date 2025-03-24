@@ -7,3 +7,6 @@ class Bandit(ABC):
 
     @abstractmethod
     def reset(self) -> None: ...
+
+    @abstractmethod
+    def copy(self) -> "Bandit": ...

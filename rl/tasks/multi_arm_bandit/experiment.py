@@ -1,3 +1,6 @@
+import concurrent.futures
+import os
+import random
 from collections import defaultdict
 
 import matplotlib.pyplot as plt
@@ -5,9 +8,21 @@ import numpy as np
 import seaborn as sns
 from tqdm import tqdm
 
-from multi_arm_bandit.agent import Agent
-from multi_arm_bandit.bandits import Bandit
-from multi_arm_bandit.simulation import Simulation
+from rl.tasks.multi_arm_bandit.agent import Agent
+from rl.tasks.multi_arm_bandit.bandits import Bandit
+from rl.tasks.multi_arm_bandit.simulation import Simulation
+
+
+def _run_single_simulation(args: tuple[str, Agent, Bandit, int]) -> tuple[str, list[float]]:
+    """Run a single simulation run with a copy of the agent and bandit."""
+    name, agent, bandit, n_steps = args
+    agent_copy = agent.copy()
+    bandit_copy = bandit.copy()
+
+    simulation = Simulation(agent_copy, bandit_copy)
+    rewards = simulation.run(n_steps)
+
+    return name, rewards
 
 
 class ExperimentManager:
@@ -40,12 +55,24 @@ class ExperimentManager:
 
     def run(self) -> None:
         results = defaultdict(list)
-        for name, agent in (p_bar := tqdm(self.agents.items())):
-            p_bar.set_description(f"Running {name}")
-            simulation = Simulation(agent, self.bandit)
 
-            for _ in tqdm(range(self.n_runs), leave=False, position=1):
-                rewards = simulation.run(self.n_steps)
+        tasks = []
+        for name, agent in self.agents.items():
+            tasks.extend([(name, agent, self.bandit, self.n_steps) for _ in range(self.n_runs)])
+
+        random.shuffle(tasks)  # insures smooth eta
+
+        max_workers = os.cpu_count()
+
+        with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+            futures = [executor.submit(_run_single_simulation, args) for args in tasks]
+
+            for future in tqdm(
+                concurrent.futures.as_completed(futures),
+                total=len(futures),
+                desc="Running simulations",
+            ):
+                name, rewards = future.result()
                 results[name].append(rewards)
 
         self._plot_results(results)

@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import stats
 
-from multi_arm_bandit.agent.base import Agent
+from rl.tasks.multi_arm_bandit.agent.base import Agent
 
 
 class EpsilonBMCAgent(Agent):
@@ -132,3 +132,6 @@ class EpsilonBMCAgent(Agent):
         self.mean_reward = np.zeros(self.num_arms)
         self.var_reward = np.ones(self.num_arms)
         self.n_pulls = np.zeros(self.num_arms)
+
+    def copy(self) -> "EpsilonBMCAgent":
+        return EpsilonBMCAgent(**self.init_args)

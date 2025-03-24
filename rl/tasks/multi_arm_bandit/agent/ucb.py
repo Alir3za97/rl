@@ -1,6 +1,6 @@
 import numpy as np
 
-from multi_arm_bandit.agent.base import Agent
+from rl.tasks.multi_arm_bandit.agent.base import Agent
 
 
 class UCBAgent(Agent):
@@ -34,3 +34,6 @@ class UCBAgent(Agent):
         self.q_values = [0] * self.n_arms
         self.n_pulls = [0] * self.n_arms
         self.n_actions = 0
+
+    def copy(self) -> "UCBAgent":
+        return UCBAgent(self.n_arms, self.c)

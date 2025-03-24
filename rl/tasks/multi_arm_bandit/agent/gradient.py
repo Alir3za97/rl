@@ -1,6 +1,6 @@
 import numpy as np
 
-from multi_arm_bandit.agent import Agent
+from rl.tasks.multi_arm_bandit.agent.base import Agent
 
 
 class GradientAgent(Agent):
@@ -49,3 +49,6 @@ class GradientAgent(Agent):
         self.total_steps = 0
         self.avg_reward = 0
         self.n_pulls = [0] * self.n_arms
+
+    def copy(self) -> "GradientAgent":
+        return GradientAgent(self.n_arms, self.alpha)
