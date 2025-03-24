@@ -4,6 +4,6 @@ This project is the simulations of methods and problems discussed in _Reinforcem
 
 ## Tasks
 
-- [Grid World](./tasks/grid_world/README.md)
-- [Multi-arm Bandits](./tasks/multi_arm_bandit/README.md)
-- [Pole Balancing](./tasks/pole_balancing/README.md)
+- [Grid World](./rl/tasks/grid_world/README.md)
+- [Multi-arm Bandits](./rl/tasks/multi_arm_bandit/README.md)
+- [Pole Balancing](./rl/tasks/pole_balancing/README.md)
