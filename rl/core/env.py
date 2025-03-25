@@ -27,6 +27,17 @@ class Environment(ABC, Generic[S, A]):
     def close(self) -> None:
         """Close the environment."""
 
+    @abstractmethod
+    def copy(self) -> "Environment[S, A]":
+        """Return a copy of the environment.
+
+        Useful for parallelizing the environment.
+
+        Returns:
+            Environment[S, A]: A copy of the environment.
+
+        """
+
 
 class ModelEnvironment(Environment[S, A], ABC):
     @property

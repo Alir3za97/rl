@@ -1,10 +1,10 @@
-from rl.core.alg import OfflineRLAlgorithm
+from rl.core.alg import ModelBasedRLAlgorithm
 from rl.core.env import ModelEnvironment
 from rl.core.policy import ActionDistribution, Policy
 from rl.core.types import A, S
 
 
-class ValueIteration(OfflineRLAlgorithm[S, A]):
+class ValueIteration(ModelBasedRLAlgorithm[S, A]):
     """Value iteration algorithm for MDPs.
 
     Classic model-based dynamic programming algorithm for computing the optimal policy
@@ -44,7 +44,8 @@ class ValueIteration(OfflineRLAlgorithm[S, A]):
             tolerance: The tolerance for the value function.
 
         """
-        self.env = env
+        super().__init__(env=env)
+
         self.discount_factor = discount_factor
         self.max_iterations = max_iterations
         self.tolerance = tolerance

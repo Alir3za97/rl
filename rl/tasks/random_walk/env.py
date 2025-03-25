@@ -121,3 +121,13 @@ class SimpleRandomWalk(ModelEnvironment[State, Action]):
     def current_state(self) -> State:
         """Return the current state of the environment."""
         return self.state
+
+    def copy(self) -> "SimpleRandomWalk":
+        """Return a copy of the environment."""
+        return SimpleRandomWalk(
+            n=self.n,
+            start_state=self.start_state,
+            terminate_left_reward=self.terminate_left_reward,
+            terminate_right_reward=self.terminate_right_reward,
+            step_reward=self.step_reward,
+        )
