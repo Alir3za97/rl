@@ -26,6 +26,7 @@ Value Iteration solves an MDP by iteratively improving the value function until 
 $V_{k+1}(s) = \max_a [R(s, a) + \gamma \sum_{s'} P(s'|s,a) V_k(s')]$
 
 Where:
+
 - $V_k(s)$ is the value of state $s$ at iteration $k$
 - $R(s, a)$ is the reward for taking action $a$ in state $s$
 - $\gamma$ is the discount factor
