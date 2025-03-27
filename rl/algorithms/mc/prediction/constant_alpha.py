@@ -1,6 +1,6 @@
 from collections import defaultdict
-from enum import Enum
 
+from rl.algorithms.mc.visit import VisitType
 from rl.core.alg import PolicyEvaluationAlgorithm
 from rl.core.env import Environment
 from rl.core.policy import Policy
@@ -8,24 +8,19 @@ from rl.core.runner import ParallelRunner
 from rl.core.types import A, S, Transition
 
 
-class VisitType(Enum):
-    FIRST_VISIT = "first_visit"
-    EVERY_VISIT = "every_visit"
+class ConstantAlphaMonteCarloPredictor(PolicyEvaluationAlgorithm[S, A]):
+    """Constant Alpha Monte Carlo Prediction Algorithm.
 
-
-class MonteCarloPredictor(PolicyEvaluationAlgorithm[S, A]):
-    """Monte Carlo Prediction Algorithm.
-
-    This algorithm is used to estimate the value function and Q-function of a policy.
-    Supports both first-visit and every-visit Monte Carlo methods.
-
-    The algorithm works by generating episodes using the given policy, then calculating
-    returns for each state (and state-action pair) encountered in those episodes.
+    This algorithm is similar to the standard Monte Carlo predictor but uses a constant
+    step size (alpha) for updates instead of simple averaging. This allows the algorithm
+    to adapt more quickly to non-stationary environments and can give more weight to
+    recent episodes.
 
     For each episode:
     1. Generate a complete trajectory by following the policy
     2. Calculate the return (discounted sum of rewards) for each state visited
-    3. Update the value estimates by averaging returns
+    3. Update the value estimates using V(s) = V(s) + alpha * [G - V(s)]
+       where G is the return and alpha is the step size
 
     With first-visit MC, we only consider the first occurrence of each state in an episode.
     With every-visit MC, we consider every occurrence of each state.
@@ -39,6 +34,7 @@ class MonteCarloPredictor(PolicyEvaluationAlgorithm[S, A]):
         self,
         env: Environment[S, A],
         policy: Policy[S, A],
+        alpha: float = 0.1,
         discount_factor: float = 0.99,
         num_episodes: int = 1000,
         max_steps: int = 1000,
@@ -47,11 +43,12 @@ class MonteCarloPredictor(PolicyEvaluationAlgorithm[S, A]):
         compute_value_function: bool = True,
         compute_q_function: bool = True,
     ) -> None:
-        """Initialize the Monte Carlo prediction algorithm.
+        """Initialize the Constant Alpha Monte Carlo prediction algorithm.
 
         Args:
             env: The environment to run the algorithm on.
             policy: The policy to evaluate.
+            alpha: The step size parameter for updates.
             discount_factor: The discount factor.
             num_episodes: The number of episodes to run the algorithm on.
             max_steps: The maximum number of steps in each generated episode.
@@ -62,6 +59,7 @@ class MonteCarloPredictor(PolicyEvaluationAlgorithm[S, A]):
 
         """
         self.env = env
+        self.alpha = alpha
         self.discount_factor = discount_factor
         self.num_episodes = num_episodes
         self.max_steps = max_steps
@@ -73,14 +71,10 @@ class MonteCarloPredictor(PolicyEvaluationAlgorithm[S, A]):
         self.policy: Policy[S, A] = policy
 
         # State value function
-        self.value_function: dict[S, float] = {}
-        self.returns_sum: dict[S, float] = defaultdict(float)
-        self.returns_count: dict[S, int] = defaultdict(int)
+        self.value_function: dict[S, float] = defaultdict(float)
 
         # State-action value function (Q)
-        self.q_function: dict[tuple[S, A], float] = {}
-        self.q_returns_sum: dict[tuple[S, A], float] = defaultdict(float)
-        self.q_returns_count: dict[tuple[S, A], int] = defaultdict(int)
+        self.q_function: dict[tuple[S, A], float] = defaultdict(float)
 
     def run(self) -> Policy[S, A]:
         runner = ParallelRunner(
@@ -135,9 +129,8 @@ class MonteCarloPredictor(PolicyEvaluationAlgorithm[S, A]):
         if self.visit_type == VisitType.FIRST_VISIT and not is_first_state_visit:
             return visited_states
 
-        self.returns_sum[s] += g
-        self.returns_count[s] += 1
-        self.value_function[s] = self.returns_sum[s] / self.returns_count[s]
+        # Constant alpha update rule: V(s) = V(s) + alpha * [G - V(s)]
+        self.value_function[s] += self.alpha * (g - self.value_function[s])
 
         return visited_states
 
@@ -156,11 +149,8 @@ class MonteCarloPredictor(PolicyEvaluationAlgorithm[S, A]):
         if self.visit_type == VisitType.FIRST_VISIT and not is_first_sa_visit:
             return visited_state_actions
 
-        self.q_returns_sum[state_action] += g
-        self.q_returns_count[state_action] += 1
-        self.q_function[state_action] = (
-            self.q_returns_sum[state_action] / self.q_returns_count[state_action]
-        )
+        # Constant alpha update rule: Q(s,a) = Q(s,a) + alpha * [G - Q(s,a)]
+        self.q_function[state_action] += self.alpha * (g - self.q_function[state_action])
 
         return visited_state_actions
 

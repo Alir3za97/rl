@@ -119,4 +119,4 @@ docstring-code-format = false
 docstring-code-line-length = "dynamic"
 
 [tool.ruff.lint.pylint]
-max-args = 10
+max-args = 12

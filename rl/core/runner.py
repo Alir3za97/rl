@@ -1,6 +1,8 @@
 import multiprocessing as mp
 from typing import Generic
 
+from tqdm import tqdm
+
 from rl.core.env import Environment
 from rl.core.policy import Policy
 from rl.core.types import A, S, Transition
@@ -96,7 +98,7 @@ class ParallelRunner(Generic[S, A]):
             results = pool.map(self._worker_job, range(self.n_workers))
 
             all_episodes = []
-            for worker_episodes in results:
+            for worker_episodes in tqdm(results, desc="Collecting episodes"):
                 all_episodes.extend(worker_episodes)
 
         return all_episodes
